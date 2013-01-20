@@ -58,7 +58,7 @@ def loadBeersForStyle(style):
 
 def processBeer(beer):
 	# pprint.pprint(beer)
-	print 'Loading: {0} - {1}'.format(encode(beer['breweries'][0]['name']), encode(beer['name']))
+	print 'Loading: {0} - {1}'.format(encode(get(beer, 'breweries', 0, 'name')), encode(beer['name']))
 	beerData = gatherData(beer)
 	return beerData
 
