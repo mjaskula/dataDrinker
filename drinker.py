@@ -61,14 +61,16 @@ def processBeer(beer):
 
 def gatherData(beer):
 	beerData = {}
-	copyField(beerData, 'brewery', beer, 'breweries', 0, 'name') 
-	copyField(beerData, 'name',    beer, 'name') 
-	copyField(beerData, 'style',   beer, 'style', 'name')
-	copyField(beerData, 'styleId', beer, 'styleId')
-	copyField(beerData, 'abv',     beer, 'abv') 
-	copyField(beerData, 'ibu',     beer, 'ibu')
-	copyField(beerData, 'og',      beer, 'originalGravity')
-	copyField(beerData, 'srm',     beer, 'srm', 'name') 
+	copyField(beerData, 'brewery',   beer, 'breweries', 0, 'name') 
+	copyField(beerData, 'breweryId', beer, 'breweries', 0, 'id') 
+	copyField(beerData, 'name',      beer, 'name') 
+	copyField(beerData, 'id',        beer, 'id') 
+	copyField(beerData, 'style',     beer, 'style', 'name')
+	copyField(beerData, 'styleId',   beer, 'styleId')
+	copyField(beerData, 'abv',       beer, 'abv') 
+	copyField(beerData, 'ibu',       beer, 'ibu')
+	copyField(beerData, 'og',        beer, 'originalGravity')
+	copyField(beerData, 'srm',       beer, 'srm', 'name') 
 	return beerData
 
 def copyField(dest, destFieldName, src, *srcFieldNames):
