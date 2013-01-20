@@ -53,12 +53,12 @@ def loadBeersForStyle(style):
 	for beer in beers:
 		processedBeer = processBeer(beer)
 		if processedBeer is not None:
+			print '  Loaded: {0} - {1}'.format(encode(processedBeer['brewery']), encode(processedBeer['name']))
 			beersForStyle.append(processedBeer)
 	return beersForStyle
 
 def processBeer(beer):
 	# pprint.pprint(beer)
-	print 'Loading: {0} - {1}'.format(encode(get(beer, 'breweries', 0, 'name')), encode(beer['name']))
 	beerData = gatherData(beer)
 	return beerData
 
@@ -83,7 +83,7 @@ def gatherData(beer):
 def copyField(dest, destFieldName, src, *srcFieldNames):
 	value = get(src, *srcFieldNames)
 	if value is not None:
-		print '  {0}: {1}'.format(destFieldName, encode(value))
+		# print '    {0}: {1}'.format(destFieldName, encode(value))
 		dest[destFieldName] = value
 
 # helpers
