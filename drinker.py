@@ -6,8 +6,6 @@ from brewerydb import *
 OUTPUT = "output"
 STYLES_FILE = 'styles.json'
 
-beerList = [] #TODO: make functional
-
 def main():
 	ensureOutputDir()
 	configure()
@@ -34,13 +32,16 @@ def loadStyles():
 
 
 def loadBeers(styles):
+	fullList = []
 	for style in styles:
-		loadBeersForStyle(style)
-		writeToJson(beerList, 'beers-{0}.json'.format(style['id']))
-	writeToJson(beerList, 'beers-.json')
+		beers = loadBeersForStyle(style)
+		writeToJson(beers, 'beers-{0}.json'.format(style['id']))
+		fullList.extend(beers)
+	writeToJson(fullList, 'beers.json')
 		
 
 def loadBeersForStyle(style):
+	beersForStyle = []
 	dataFile = 'beers-{0}.raw.json'.format(style['id'])
 	if fileExists(dataFile):
 		print 'Loading beers for style {0} {1} from file...'.format(style['id'], encode(style['name']))
@@ -50,14 +51,16 @@ def loadBeersForStyle(style):
 		beers = handleBreweryDbResponse(BreweryDb.beers({'styleId': style['id'], 'withBreweries': 'Y'}))  #TODO: handle pagination
 		writeToJson(beers, 'beers-{0}.raw.json'.format(style['id']))
 	for beer in beers:
-		processBeer(beer)
+		processedBeer = processBeer(beer)
+		if processedBeer is not None:
+			beersForStyle.append(processedBeer)
+	return beersForStyle
 
 def processBeer(beer):
 	# pprint.pprint(beer)
 	print 'Loading: {0} - {1}'.format(encode(beer['breweries'][0]['name']), encode(beer['name']))
 	beerData = gatherData(beer)
-	if beerData is not None: 
-		beerList.append(beerData)
+	return beerData
 
 def gatherData(beer):
 	beerData = {}
