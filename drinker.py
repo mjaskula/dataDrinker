@@ -4,6 +4,7 @@ import simplejson as json
 from brewerydb import *
 
 OUTPUT = "output"
+STYLES_FILE = 'styles.json'
 
 beerList = [] #TODO: make functional
 
@@ -23,21 +24,31 @@ def configure():
 
 
 def loadStyles():
-	print "Loading styles..."
-	styles = handleBreweryDbResponse(BreweryDb.styles())
-	return writeToJson(styles, 'styles.json')
+	if fileExists(STYLES_FILE):
+		print "Loading styles from file..."
+		return loadFromJson(STYLES_FILE)
+	else:
+		print "Loading styles from BreweryDB..."
+		styles = handleBreweryDbResponse(BreweryDb.styles())
+		return writeToJson(styles, STYLES_FILE)
 
 
 def loadBeers(styles):
-	#for style in styles:
-		loadBeersForStyle(styles[0])
-		writeToJson(beerList, 'beers.json')
+	for style in styles:
+		loadBeersForStyle(style)
+		writeToJson(beerList, 'beers-{0}.json'.format(style['id']))
+	writeToJson(beerList, 'beers-.json')
 		
 
 def loadBeersForStyle(style):
-	print 'Loading beers for style {0} {1}...'.format(style['id'], encode(style['name']))
-	beers = handleBreweryDbResponse(BreweryDb.beers({'styleId': style['id'], 'withBreweries': 'Y'}))  #TODO: handle pagination
-	writeToJson(beers, 'beers-{0}.json'.format(style['id']))
+	dataFile = 'beers-{0}.raw.json'.format(style['id'])
+	if fileExists(dataFile):
+		print 'Loading beers for style {0} {1} from file...'.format(style['id'], encode(style['name']))
+		beers = loadFromJson(dataFile)
+	else:
+		print 'Loading beers for style {0} {1} from BreweryDB...'.format(style['id'], encode(style['name']))
+		beers = handleBreweryDbResponse(BreweryDb.beers({'styleId': style['id'], 'withBreweries': 'Y'}))  #TODO: handle pagination
+		writeToJson(beers, 'beers-{0}.raw.json'.format(style['id']))
 	for beer in beers:
 		processBeer(beer)
 
@@ -91,15 +102,22 @@ def encode(value):
 
 def handleBreweryDbResponse(response):
 	if (response['status'] == "success"):
-		return response['data']
+		return response.get('data', [])
 	else:
 		print response
 		sys.exit(1)
+
+def fileExists(filename):
+	return os.path.isfile(OUTPUT + '/' + filename)
 
 def writeToJson(object, filename):
 	with open(OUTPUT + '/' + filename, 'w') as outfile:
 	  json.dump(object, outfile)
 	return object
+
+def loadFromJson(filename):
+	with open(OUTPUT + '/' + filename, 'r') as infile:
+	  return json.load(infile)
 
 if __name__ == "__main__":
     main()
