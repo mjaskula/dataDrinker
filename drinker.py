@@ -50,7 +50,7 @@ def processBeer(beer):
 
 def gatherData(beer):
 	beerData = {}
-	copyField(beerData, 'brewery', beer['breweries'][0], 'name') 
+	copyField(beerData, 'brewery', beer, 'breweries', 0, 'name') 
 	copyField(beerData, 'name',    beer, 'name') 
 	copyField(beerData, 'style',   beer, 'style', 'name')
 	copyField(beerData, 'styleId', beer, 'styleId')
@@ -68,13 +68,23 @@ def copyField(dest, destFieldName, src, *srcFieldNames):
 
 # helpers
 
-def get(dict, *args):
-	if len(args) > 1:
-		return get(dict.get(args[0], {}), *(args[1:]))
-	elif len(args) == 1:
-		return dict.get(args[0], None)
+def get(obj, *args):
+	if isinstance(obj, dict):
+		if len(args) > 1:
+			return get(obj.get(args[0], {}), *(args[1:]))
+		elif len(args) == 1:
+			return obj.get(args[0], None)
+		else:
+			return obj
+	elif isinstance(obj, list):
+		if len(args) > 1:
+			return get(obj[args[0]], *(args[1:]))
+		elif len(args) == 1:
+			return obj[args[0]]
+		else:
+			return obj
 	else:
-		return dict
+		return obj
 
 def encode(value):
 	return value.encode(sys.stdout.encoding, 'replace') if isinstance(value, unicode) else value
