@@ -73,8 +73,12 @@ def gatherData(beer):
 	copyField(beerData, 'abv',       beer, 'abv') 
 	copyField(beerData, 'ibu',       beer, 'ibu')
 	copyField(beerData, 'og',        beer, 'originalGravity')
-	copyField(beerData, 'srm',       beer, 'srm', 'name') 
-	return beerData
+	copyField(beerData, 'srm',       beer, 'srm', 'name')
+
+	if ('abv' in beerData and 'ibu' in beerData and 'og' in beerData and 'srm' in beerData):
+		return beerData
+	else:
+		return None
 
 def copyField(dest, destFieldName, src, *srcFieldNames):
 	value = get(src, *srcFieldNames)
