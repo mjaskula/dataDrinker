@@ -6,7 +6,7 @@ from brewerydb import *
 OUTPUT = "output"
 STYLES_FILE = 'styles.json'
 
-counts = {'total': 0}
+counts = {'total': 0, 'using': 0, 'srm': 0, 'ibu': 0, 'og': 0, 'abv': 0}
 
 def main():
 	ensureOutputDir()
@@ -58,6 +58,7 @@ def loadBeersForStyle(style):
 			processedBeer = processBeer(beer)
 			if processedBeer is not None:
 				print '  Loaded: {0} - {1}'.format(encode(processedBeer['brewery']), encode(processedBeer['name']))
+				counts['using'] += 1
 				beersForStyle.append(processedBeer)
 		currentPage += 1
 	return beersForStyle
@@ -85,7 +86,22 @@ def processBeer(beer):
 	# pprint.pprint(beer)
 	beerData = gatherData(beer)
 	counts['total'] += 1
-	return beerData
+	if ('abv' in beerData and 'ibu' in beerData and 'og' in beerData and 'srm' in beerData):
+		return beerData
+	elif ('ibu' in beerData and 'og' in beerData and 'srm' in beerData):
+		counts['abv'] += 1
+		return None
+	elif ('abv' in beerData and 'og' in beerData and 'srm' in beerData):
+		counts['ibu'] += 1
+		return None
+	elif ('abv' in beerData and 'ibu' in beerData and 'srm' in beerData):
+		counts['og'] += 1
+		return None
+	elif ('abv' in beerData and 'ibu' in beerData and 'og' in beerData):
+		counts['srm'] += 1
+		return None
+	else:
+		return None
 
 def gatherData(beer):
 	beerData = {}
@@ -99,11 +115,7 @@ def gatherData(beer):
 	copyField(beerData, 'ibu',       beer, 'ibu')
 	copyField(beerData, 'og',        beer, 'originalGravity')
 	copyField(beerData, 'srm',       beer, 'srm', 'name')
-
-	if ('abv' in beerData and 'ibu' in beerData and 'og' in beerData and 'srm' in beerData):
-		return beerData
-	else:
-		return None
+	return beerData
 
 def copyField(dest, destFieldName, src, *srcFieldNames):
 	value = get(src, *srcFieldNames)
