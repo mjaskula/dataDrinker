@@ -27,7 +27,7 @@ def loadStyles():
 		return loadFromJson(STYLES_FILE)
 	else:
 		print "Loading styles from BreweryDB..."
-		styles = handleBreweryDbResponse(BreweryDb.styles())
+		styles = handleBreweryDbResponse(BreweryDb.styles()).get('data', [])
 		return writeToJson(styles, STYLES_FILE)
 
 
@@ -42,20 +42,35 @@ def loadBeers(styles):
 
 def loadBeersForStyle(style):
 	beersForStyle = []
-	dataFile = 'beers-{0}.raw.json'.format(style['id'])
+
+	currentPage = 1
+	numPages = 30 # a guess at max page numbers
+	while currentPage <= numPages:
+		beers, numPages = loadStylePage(style, currentPage, numPages)
+		for beer in beers:
+			processedBeer = processBeer(beer)
+			if processedBeer is not None:
+				print '  Loaded: {0} - {1}'.format(encode(processedBeer['brewery']), encode(processedBeer['name']))
+				beersForStyle.append(processedBeer)
+		currentPage += 1
+	return beersForStyle
+
+def loadStylePage(style, page, numPages):
+	dataFile = 'beers-{0}-{1}.raw.json'.format(style['id'], page)
 	if fileExists(dataFile):
-		print 'Loading beers for style {0} {1} from file...'.format(style['id'], encode(style['name']))
+		print 'Loading beers for style {0} {1} page {2} from file...'.format(style['id'], encode(style['name']), page)
 		beers = loadFromJson(dataFile)
 	else:
-		print 'Loading beers for style {0} {1} from BreweryDB...'.format(style['id'], encode(style['name']))
-		beers = handleBreweryDbResponse(BreweryDb.beers({'styleId': style['id'], 'withBreweries': 'Y'}))  #TODO: handle pagination
-		writeToJson(beers, 'beers-{0}.raw.json'.format(style['id']))
-	for beer in beers:
-		processedBeer = processBeer(beer)
-		if processedBeer is not None:
-			print '  Loaded: {0} - {1}'.format(encode(processedBeer['brewery']), encode(processedBeer['name']))
-			beersForStyle.append(processedBeer)
-	return beersForStyle
+		beers, numPages = loadBeersFromBreweryDb(style, page)
+	return (beers, numPages)
+
+def loadBeersFromBreweryDb(style, page):
+		print 'Loading beers for style {0} {1} page {2} from BreweryDB...'.format(style['id'], encode(style['name']), page)
+		response = handleBreweryDbResponse(BreweryDb.beers({'styleId': style['id'], 'withBreweries': 'Y', 'p': page}))
+		numPages = response.get('numberOfPages')
+		beers = response.get('data', [])
+		writeToJson(beers, 'beers-{0}-{1}.raw.json'.format(style['id'], page))
+		return (beers, numPages)
 
 def processBeer(beer):
 	# pprint.pprint(beer)
@@ -111,7 +126,7 @@ def encode(value):
 
 def handleBreweryDbResponse(response):
 	if (response['status'] == "success"):
-		return response.get('data', [])
+		return response
 	else:
 		print response
 		sys.exit(1)
