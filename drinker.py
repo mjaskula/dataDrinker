@@ -6,10 +6,13 @@ from brewerydb import *
 OUTPUT = "output"
 STYLES_FILE = 'styles.json'
 
+counts = {'total': 0}
+
 def main():
 	ensureOutputDir()
 	configure()
 	loadBeers(loadStyles())
+	pprint.pprint(counts)
 
 
 def ensureOutputDir():
@@ -24,17 +27,21 @@ def configure():
 def loadStyles():
 	if fileExists(STYLES_FILE):
 		print "Loading styles from file..."
-		return loadFromJson(STYLES_FILE)
+		styles = loadFromJson(STYLES_FILE)
 	else:
 		print "Loading styles from BreweryDB..."
 		styles = handleBreweryDbResponse(BreweryDb.styles()).get('data', [])
-		return writeToJson(styles, STYLES_FILE)
+		writeToJson(styles, STYLES_FILE)
+	counts['styles'] = len(styles)
+	return styles
 
 
 def loadBeers(styles):
 	fullList = []
 	for style in styles:
+		counts[style['name']] = {'total': 0}
 		beers = loadBeersForStyle(style)
+		counts[style['name']]['using'] = len(beers)
 		writeToJson(beers, 'beers-{0}.json'.format(style['id']))
 		fullList.extend(beers)
 	writeToJson(fullList, 'beers.json')
@@ -61,7 +68,9 @@ def loadStylePage(style, page, numPages):
 		print 'Loading beers for style {0} {1} page {2} from file...'.format(style['id'], encode(style['name']), page)
 		beers = loadFromJson(dataFile)
 	else:
-		beers, numPages = loadBeersFromBreweryDb(style, page)
+		beers = []
+		# beers, numPages = loadBeersFromBreweryDb(style, page)
+	counts[style['name']]['total'] = counts[style['name']]['total'] + len(beers)
 	return (beers, numPages)
 
 def loadBeersFromBreweryDb(style, page):
@@ -75,6 +84,7 @@ def loadBeersFromBreweryDb(style, page):
 def processBeer(beer):
 	# pprint.pprint(beer)
 	beerData = gatherData(beer)
+	counts['total'] += 1
 	return beerData
 
 def gatherData(beer):
