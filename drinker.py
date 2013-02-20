@@ -152,7 +152,7 @@ def handleBreweryDbResponse(response):
 		return response
 	else:
 		print response
-		sys.exit(1)
+		return {}
 
 def fileExists(filename):
 	return os.path.isfile(OUTPUT + '/' + filename)
