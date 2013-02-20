@@ -12,6 +12,7 @@ def main():
 	ensureOutputDir()
 	configure()
 	loadBeers(loadStyles())
+	writeToJson(counts, 'counts.json')
 	pprint.pprint(counts)
 
 
