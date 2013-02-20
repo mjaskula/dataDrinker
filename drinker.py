@@ -71,7 +71,7 @@ def loadStylePage(style, page, numPages):
 		beers = loadFromJson(dataFile)
 	else:
 		beers = []
-		# beers, numPages = loadBeersFromBreweryDb(style, page)
+		beers, numPages = loadBeersFromBreweryDb(style, page)
 	counts[style['name']]['total'] = counts[style['name']]['total'] + len(beers)
 	return (beers, numPages)
 
